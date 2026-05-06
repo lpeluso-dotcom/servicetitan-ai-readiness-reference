@@ -1,0 +1,17 @@
+# Local notes and private exports
+.env
+.env.*
+!.env.example
+private/
+exports/
+tenant-exports/
+
+# Generated packages
+*.zip
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
