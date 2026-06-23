@@ -76,6 +76,14 @@ External platforms (Lace AI is a common example) integrate with ST call data to 
 
 The full 10-step pattern is in §3 below.
 
+### 1.5 Field Pro — standalone app and FMA enhancements (ST-77)
+
+As of ST-77, job-site recording is handled by a standalone **Field Pro** app rather than being embedded in Field Mobile. Recording is triggered automatically by Field Mobile arrival/complete events, but the actual capture and job-linkage requires Field Pro to be installed on the same device. For any tenant using Field Pro call or job-site recording: both apps must coexist on each tech's device. Recording will silently fail on devices that have Field Mobile but not Field Pro installed.
+
+The Field Mobile App (FMA) received related enhancements in ST-77:
+- **Estimate edit/sell/duplicate on completed jobs** — previously view-only after closeout; techs can now modify estimates from the job record.
+- **Mobile Calendar** — book follow-up appointments from inside FMA at closeout without switching apps.
+
 ---
 
 ## 2. The Data-Readiness Checklist for ST AI Tools
