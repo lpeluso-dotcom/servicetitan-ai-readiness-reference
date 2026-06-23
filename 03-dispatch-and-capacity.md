@@ -76,6 +76,16 @@ Located at **Settings → Titan Intelligence → Adaptive Capacity → Basic Set
 
 For multi-trade operations with BU Groups configured, the recommended state is: **first four toggles OFF (controlled per-rule via strategic rule conditions), fifth toggle ON.**
 
+### 2.6 Atlas natural-language rule builder (ST-77.3)
+
+**Atlas** is now a native ServiceTitan feature in Adaptive Capacity (no longer a third-party tool). It accepts a natural-language rule description and generates the strategic rule configuration. Example: *"Reduce HVAC Maintenance capacity by 30% in July"* produces a rule with the correct threshold, job-type scope, and activation dates.
+
+The output is a standard strategic rule — same most-restrictive-wins evaluation, same versioning discipline (`vMMDDYY` suffix), same Day of Week requirement. **Always review an Atlas-generated rule before activating it.** Atlas does not prevent naming conflicts, expired date ranges, or double-stacking against existing rules.
+
+### 2.7 Max Drive Time Threshold per BU (ST-77.3)
+
+Dispatch Pro's Max Drive Time Threshold (the maximum drive time DP will accept when assigning a tech to a job) is now configurable per Business Unit, in addition to the tenant-level setting. Useful when BUs have materially different service-area sizes — HVAC Commercial might accept 45-minute drives while HVAC Residential caps at 25 minutes. Configure per-BU under the BU's DP settings rather than relying on the tenant-level default.
+
 The "Include On Call Technician Shifts" toggle is particularly important: leaving it OFF means on-call shift capacity is excluded from the global calculation baseline. On-call availability is then introduced exclusively through strategic rules with `Shift Type = On-Call`, providing fine-grained control over which job types and windows can use on-call techs.
 
 ### 2.4 Technician Exclusions
@@ -579,6 +589,27 @@ A common operational pattern: the **AH (After-Hours) Tech row** on the Dispatch 
 - Trade (HVAC, Plumbing, Electrical, Generator).
 
 If the row is not updated before the on-call window starts, the answering service will not know who to contact for after-hours calls. Make this a daily checklist item with a hard cutoff.
+
+### 6.7 Mode per Day (ST-77.3)
+
+Dispatch Pro mode is now configured per calendar day rather than as a single global state. Each day can be set to **Assist** or **Auto**, and within Auto to **Full** or **Light**. Configuration lives under **Settings → Dispatch Pro → Mode per Day**.
+
+Recommended pattern for operations transitioning from Assist to Auto: keep the **current day in Assist** (protect intraday dispatcher decisions from the board), allow **tomorrow and beyond to run Auto Light or Auto Full**. Review the week's mode schedule each morning before flipping. This decoupled configuration avoids the situation where a day's schedule is already well-formed and an accidental Auto-mode activation disrupts it.
+
+### 6.8 After-hours auto-dispatch (ST-77.3)
+
+ST-77.3 introduced an after-hours auto-dispatch path: an after-hours call (or booking event) triggers Dispatch Pro to find the on-call tech and auto-assign within seconds — without dispatcher intervention.
+
+**Before enabling:** audit how after-hours calls currently flow to the on-call tech. If a third-party answering service, ScheduleEngine, or on-call platform already manages after-hours escalation, enabling this feature can create **duplicate dispatch events on the same on-call shift**. The system creates an assignment; the answering service also calls the tech. Evaluate the full chain before activating and disable redundant external routing if you turn this on.
+
+### 6.9 Multi-appointment optimization (ST-77.3)
+
+Return visits (e.g., equipment installs requiring a second appointment) and parts-runs are now candidates for Dispatch Pro optimization, not manual dispatcher placement. Prior to ST-77.3, only initial service calls were eligible.
+
+Prerequisites:
+- Job types for return visits and parts-runs must have `Enable Dispatch Pro = ON`.
+- Skills must be configured on those job types — DP has no skill criteria to match against without them.
+- Zones must be current, since drive-time optimization is the primary value add for multi-appointment sequences.
 
 ---
 
