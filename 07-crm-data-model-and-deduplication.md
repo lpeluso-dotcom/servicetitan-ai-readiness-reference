@@ -403,6 +403,35 @@ For Enterprise Hub deployments, **Network Groups** define subsets of tenant IDs 
 
 ---
 
+## 11. Installed Equipment API — ST-77 Schema Updates
+
+The installed equipment endpoint (`/equipmentsystems/v2/tenant/{tenantId}/installed-equipment/{id}`) received confirmed writable fields and new read-only fields in ST-77.
+
+### 11.1 Confirmed writable fields (ST-77)
+
+| Field | Type | Notes |
+|---|---|---|
+| `manufacturerName` | String | Manufacturer name on the installed record. |
+| `installedOn` | Date (ISO 8601) | Installation date. |
+| `equipmentTypeId` | Integer | Equipment type classification. **Use this field, not `typeId`.** `typeId` silently fails on write — returns 200 OK with no change. |
+
+### 11.2 New read-only fields (ST-77)
+
+| Field | Type | Notes |
+|---|---|---|
+| `manufactured_on` | Date | Manufacture date of the unit. Enables warranty tracking without custom fields. |
+| `predicted_replacement_*` | Date | Automated aging computation projecting when the unit will need replacement. Sourced from equipment type + install date + expected lifecycle. |
+| `type` | String | Equipment type name. Prior ST versions returned `[object Object]` from the `{id, name}` shape; ST-77 returns the correct string. |
+
+### 11.3 Integration implications
+
+- **Warranty tracking and equipment aging dashboards** can now be driven from native fields rather than custom fields or external calculations.
+- **Membership-tier service scheduling** can key off `predicted_replacement_*` to surface aging-equipment renewal offers.
+- **Sync note:** if your integration syncs installed equipment, the new `manufactured_on` and `predicted_replacement_*` fields will start populating on records created or updated after the tenant upgrades to ST-77. Existing records may not have these fields until they are touched (updated or re-synced).
+- **Do not PATCH `typeId`.** Use `equipmentTypeId` for equipment type writes. The `typeId` field returns 200 OK silently on write attempts.
+
+---
+
 ## 10. Practical Pipeline Sequencing
 
 For a working dedup pipeline:
