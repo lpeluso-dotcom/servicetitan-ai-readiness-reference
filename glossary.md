@@ -18,6 +18,8 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 
 **AdCap Adoption** vs. **Capacity Hours.** Two distinct metrics that sound similar and are commonly conflated. AdCap Adoption (sourced from the Scheduling Utilization report) measures whether dispatchers are using AdCap. Capacity Hours (sourced from the Dispatch / Capacity API) measures actual booked-vs-available hours. Dashboards must use the right source for the question being asked. *(See `03-dispatch-and-capacity.md` §7.)*
 
+**Adaptive Login.** A two-step login flow introduced in ST-77.3 for the ServiceTitan web application. The tenant identity step precedes the auth-method selection step, replacing the previous single-page credential form. This does not affect OAuth 2.0 machine-to-machine API authentication, but breaks browser automation scripts that use single-pass credential fill. Migrate to session-reuse (persisting browser session state across runs) as the workaround. See `09-anti-patterns-and-failure-modes.md` §2.19.
+
 **AFUE — Annual Fuel Utilization Efficiency.** Gas furnace efficiency rating.
 
 **AH — After Hours.** A common job-type and shift modifier (e.g., `HV-RES-AH` = HVAC residential after-hours diagnostic).
@@ -30,7 +32,7 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 
 **Asterisk convention (`*Name`).** The naming prefix used for canonical, active, official records. Visual prefix sorts canonical items to the top of any picker. Counterpart to `DNU-`. *(See `00-overview-and-naming.md` §3.2.)*
 
-**Atlas AI.** A third-party AI tool sometimes used to generate AdCap Strategic Rules. Output should always be reviewed and versioned before activation.
+**Atlas.** ServiceTitan's native natural-language Strategic Rule builder for Adaptive Capacity. Integrated directly into ST as of ST-77.3 (previously a third-party tool). Accepts a plain-English rule description (e.g., *"Reduce HVAC capacity by 20% in July"*) and generates the rule configuration. Output is a standard strategic rule subject to normal most-restrictive-wins evaluation. Always review before activating; use the `vMMDDYY` versioned suffix. See `03-dispatch-and-capacity.md` §2.6.
 
 **Audit Trail.** ServiceTitan's structural log of mutations. Modern Audit Trail uses immutable Record Numbers (not Record IDs), supports up to 500 rows per query.
 
@@ -41,6 +43,8 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 **Bank Deposits API.** A new endpoint family in ST-75.1 (`GET /bank-deposits`, `GET /bank-deposits/{id}/transactions`, `POST /bank-deposits/markasexported`). Closes a long-standing gap in accounting export workflows. *(See `10-api-release-notes-st75-st76.md` §2.)*
 
 **BDR — Business Development Representative.** Common as a custom-field dimension on job types.
+
+**`BillingScheduleType: Custom`.** A new enum value added to Service Agreements in ST-77.1. Allows fully custom billing schedules on membership-backed service agreements beyond the predefined `Monthly`, `Quarterly`, and `Annual` tiers.
 
 **BTU — British Thermal Unit.** Heating/cooling capacity unit.
 
@@ -79,6 +83,8 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 **CSR — Customer Service Representative.** Inbound call taker. The 10-step inbound rubric for AI CSR scoring is in `08-csr-scoring-and-ai-tools.md` §3.
 
 **Custom Fields.** Tenant-defined extensions on Customers, Locations, Jobs, Equipment. Returned in API JSON responses as a nested array of `{typeId, name, value}` objects under the `customFields` property. ETL pipelines must pivot these into flat columns. **Pick lists over free text** is the universal rule — pick lists become AI-friendly dimensional data; free text becomes regex hell. *(See `04-job-types-forms-tags.md` §6.)*
+
+**`customFieldsUpdateMode`.** Write parameter on job-type PATCH and POST (ST-77.2). Controls whether the `customFieldTypeIds` array replaces or merges existing custom field type assignments on the job type. Values: `Replace` (default — array overwrites); `Merge` (array contents are added without removing existing). Use `Merge` when adding a field type to a job type in isolation. *(See `04-job-types-forms-tags.md` §2.1.)*
 
 ---
 
@@ -120,7 +126,7 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 
 ## F
 
-**Field Pro.** ServiceTitan's mobile tech app. The primary interface techs use on jobs.
+**Field Pro.** ServiceTitan's mobile tech app — the primary interface techs use on jobs. As of ST-77, job-site **recording** is handled by a separate standalone **Field Pro** app (distinct from Field Mobile). Both apps must coexist on the tech's device for recordings to be captured and linked to the job. See `08-csr-scoring-and-ai-tools.md` §1.5.
 
 **`fieldType`.** A property on Form 2.0 unit objects that determines the rendering type. Confirmed values: `Text`, `Dropdown`, `Checkbox`, `Picture` (NOT `Photo`), `Stoplight`, `Number`, `Date`. Using an invalid value (`Photo`, etc.) causes a `400 ValidationException` on import. *(See `05-form-2-0-json-reference.md` §6.)*
 
@@ -194,6 +200,8 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 
 ## M
 
+**`manufactured_on`.** A date field on installed equipment records (ST-77), writable via the `/equipmentsystems/v2/` API. Captures the manufacture date of the installed unit, enabling warranty tracking and equipment aging calculations without custom fields. See `07-crm-data-model-and-deduplication.md` §11.
+
 **Marketing Pro.** ServiceTitan's marketing automation module. Hosts Pro Campaigns (initiatives with goals, automation rules, customer enrollment) alongside Tracking Campaigns (linked to ST tracking phone numbers). *(See `06-phone-marketing-attribution.md` §10.)*
 
 **MCP — Model Context Protocol.** Standard for connecting LLMs to tools.
@@ -201,6 +209,8 @@ This is the unified glossary across all files in the AI-Readiness Reference. Whe
 **`mergedToId`.** A tombstone pointer field on Customer and Location records. When a record is merged into another, this field is stamped with the surviving record's ID; the duplicate's `active` flag flips to `false`; foreign keys on child records are re-parented. Records with `mergedToId > 0` are dead nodes; dedup pipelines must prune them before processing. PATCHing this field directly via the API does NOT trigger the cascading re-parenting — that's a system-protected internal operation. *(See `07-crm-data-model-and-deduplication.md` §6.)*
 
 **Micro-Rule.** The Form 2.0 rules-engine constraint: maximum 2 actions per rule. More than 2 actions silently breaks the form (it imports successfully but the preview throws "Something went wrong"). Rules with N actions must be split into ⌈N/2⌉ separate rules with the same conditions. *(See `05-form-2-0-json-reference.md` §9.)*
+
+**Mode per Day.** A Dispatch Pro configuration setting introduced in ST-77.3. Allows the Assist/Auto × Full/Light operating mode to be set per calendar day rather than globally. Common pattern: keep the current day in Assist (protect intraday dispatcher decisions), set upcoming days to Auto Light or Auto Full. See `03-dispatch-and-capacity.md` §6.7.
 
 **Most-Restrictive-Wins.** AdCap's rule-evaluation principle: when multiple rules match a slot, the rule producing the lowest available capacity threshold governs. No explicit rule priority ranking exists. Rules layer like CSS specificity, but with "most-restrictive" instead of "most-specific." *(See `03-dispatch-and-capacity.md` §3.2.)*
 
