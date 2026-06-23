@@ -159,6 +159,8 @@ Tokens last 16 hours. **Cache them in-memory per process**, not in distributed s
 
 Secrets should never live in source. Standard storage mechanisms (cloud secret managers, environment variables loaded at runtime, Wrangler secrets for Cloudflare Workers) are all acceptable. Rotate any time a secret could have leaked; the migration from one secret prefix (`cs2.*`) to a new one (`cs5.*`) is invisible to consumers as long as the old token is allowed to expire naturally.
 
+> **Adaptive Login (ST-77.3):** ST-77.3 introduced a two-step login flow in the ServiceTitan web application. This does not affect OAuth API authentication (machine-to-machine), but breaks browser automation scripts that use credential-fill login. If your integration includes browser-side automation targeting `go.servicetitan.com`, migrate to session-reuse (persist browser session state across runs) rather than fresh-login per run. See `09-anti-patterns-and-failure-modes.md` §2.19.
+
 ---
 
 ## 6. Customer Segmentation Drives Routing
@@ -200,6 +202,7 @@ OAuth (sand):   https://auth-integration.servicetitan.io/connect/token
 | `jpm` | Job Project Management — jobs, projects, holds | `04-job-types-forms-tags.md` |
 | `dispatch` | Capacity, technician assignments | `03-dispatch-and-capacity.md` |
 | `marketing` | Campaigns, tracking numbers | `06-phone-marketing-attribution.md` |
+| `salestech` | Estimate templates, proposal templates, proposal types | `02-pricebook-reference.md` §3.5, `11-api-release-notes-st77.md` |
 | `accounting` | Invoices, payments, deposits, credit memos | See `10-api-release-notes-st75-st76.md` |
 | `forms` | Form definitions and submissions | `05-form-2-0-json-reference.md` |
 | `settings` | Tenant settings — employees, technicians, business units | See `10-api-release-notes-st75-st76.md` |
