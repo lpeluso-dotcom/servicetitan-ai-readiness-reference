@@ -61,6 +61,8 @@ Changes to job types propagate forward to all new jobs but **do not retroactivel
 | No Charge / Unconvertible | Boolean | No | Marks non-revenue job types |
 | Summary / Description | Text | No | CSR-facing intake guidance, appointment notes |
 | Custom Fields | Configured per field | No | Job-type-specific data collection |
+| `customFieldTypeIds` | Array | No | IDs of custom field types assigned to this job type. API-readable as of ST-77.2; combine with `customFieldsUpdateMode` on writes. |
+| `customFieldsUpdateMode` | Enum | No | On PATCH/POST: controls whether `customFieldTypeIds` replaces or merges existing assignments (`Replace` / `Merge`). ST-77.2+. |
 
 ### 2.2 The API vs UI gap
 
@@ -71,7 +73,8 @@ Some job-type fields are exposed via API; many are not. Here's the split based o
 id, name, active, business_units, priority, default_estimate_sold_action,
 duration_seconds, duration_pretty, sold_threshold, class, tags, skills,
 summary, no_charge, is_smart_dispatched, enforce_recurring_service_event_selection,
-invoice_signatures_required, external_data, modified_on, created_on
+invoice_signatures_required, external_data, modified_on, created_on,
+custom_field_type_ids (ST-77.2+)
 ```
 
 **Fields the API does NOT expose (UI-only, must scrape):**
