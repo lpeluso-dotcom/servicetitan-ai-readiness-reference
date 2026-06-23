@@ -91,6 +91,22 @@ Use this mode to feed price-search experiences (e.g., a voice agent looking up "
 
 The pricebook family enforces a rate limit cap of approximately **30 requests per 60 seconds**. A 145-row bulk material create executed sequentially through this governor takes ~10 minutes. Bulk endpoints (`POST /pricebook` and `PATCH /pricebook` for bulk create/update) significantly reduce this — adopt them when available.
 
+### 3.5 Salestech namespace — estimate and proposal templates (ST-77.2)
+
+Base URL: `https://api.servicetitan.io/salestech/v2/tenant/{tenantId}/`
+
+Introduced in ST-77.2, the `salestech` namespace provides the first full public CRUD surface for estimate and proposal templates. Prior to ST-77.2, template management required browser automation. All endpoints require the same OAuth2 credentials and `ST-App-Key` header as pricebook endpoints.
+
+| Entity | Path | Methods | Notes |
+|---|---|---|---|
+| Estimate Templates | `/estimate-templates` | GET, POST | List / create |
+| Estimate Template (single) | `/estimate-templates/{id}` | GET, PATCH, DELETE | GET / update / soft-delete |
+| Proposal Templates | `/proposal-templates` | GET, POST | List / create |
+| Proposal Template (single) | `/proposal-templates/{id}` | GET, PATCH, DELETE | GET / update / soft-delete |
+| Proposal Types | `/proposal-types` | GET | Read-only reference list |
+
+**Critical PATCH gotcha — see §7.15.** The `items[]` array on template PATCH is **full-replacement**, not delta-append. `modifiedOn` does not advance after item changes. These two behaviors break common sync patterns if not accounted for explicitly.
+
 ---
 
 ## 4. Object Schemas (Observed on Live Tenants)
@@ -586,6 +602,16 @@ This typically hits after a bulk-set of `isConfigurableEquipment: true` on too m
 
 Reusing a deactivated pricebook code for a different item creates permanent semantic ambiguity in historical line items. Never reuse a deactivated code; always mint a new one.
 
+### 7.15 `items[]` on estimate/proposal template PATCH is full-replacement, not delta-append (ST-77.2)
+
+The `salestech/v2/` template PATCH endpoint accepts an `items[]` array. **This array is a complete replacement, not an append or delta.** Any item omitted from the array is deleted from the template. There is no delta/add-only mode.
+
+Two additional surprises in this endpoint's behavior:
+- **`modifiedOn` does not advance** after `items[]` is changed. It advances only when the template itself is soft-deleted (DELETE endpoint, which sets `active = false`).
+- Consequence: any integration that gates downstream sync on `modifiedOnOrAfter` will silently miss item-level changes — the template's timestamp looks unchanged even though items were added, removed, or reordered.
+
+**Correct pattern:** always send the full `items[]` array on any PATCH. After editing template items, force a full downstream backfill on any sync that uses `modifiedOnOrAfter` as its change-detection signal. See `09-anti-patterns-and-failure-modes.md` §1 row 36.
+
 ---
 
 ## 8. Dynamic Pricing Model
@@ -788,6 +814,8 @@ For any installable equipment family (water heaters, furnaces, condensers, elect
 Higher tiers carry lower GP percentages but **higher absolute gross-profit dollars** and better long-term retention via warranty and smart-home stickiness.
 
 **Implementation rule:** Each tier should reference the **same equipment SKU** when possible, with different bundled accessories — not four separate equipment SKUs. This keeps the Pricebook lean and enables clean tier-mix reporting downstream.
+
+> **ST-77.2 update:** As of ST-77.2, estimate templates and proposal templates have a full public CRUD API under `/salestech/v2/`. Browser automation workarounds for template management are no longer required. See §3.5 for the endpoint reference and §7.15 for the full-replacement gotcha on `items[]` PATCH.
 
 ### 11.1 Labor tiers
 
