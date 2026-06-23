@@ -53,6 +53,7 @@ The big one-liners. Each row is a "do not do this" with the corrective pattern. 
 | 33 | Issuing a hard `DELETE` against a Contact ID that has multiple polymorphic associations | Severs all the contact's valid links across other Customers and Locations — not just the duplicate one. | Use **Remove Association** to sever a single link; use **Deactivate** for soft removal; reserve **Delete** for genuinely orphan contacts. See `07-crm-data-model-and-deduplication.md` §4.4. |
 | 34 | PATCHing `mergedToId` directly via the API to merge customer records | The field is a system-protected internal trigger. PATCHing it does not perform the cascading re-parenting; it just sets a field on a still-active record. | Output a reconciliation report and run merges through the native UI flow. The platform's merge operation handles the graph re-parenting correctly. See `07-crm-data-model-and-deduplication.md` §6.4. |
 | 35 | Inheriting opt-out / TCPA-restriction flags by majority vote during a contact merge | Loses opt-out status if the surviving record didn't carry it; TCPA exposure. | **Restrictive inheritance:** if any merged contact carries a `false` outreach preference, the survivor inherits the restriction. See `07-crm-data-model-and-deduplication.md` §8.2. |
+| 36 | PATCHing estimate or proposal template `items[]` expecting delta-append behavior | The `items[]` array on template PATCH is **full-replacement** — any item absent from the payload is deleted from the template. Also, `modifiedOn` does not advance after `items[]` changes, only after a soft-delete (DELETE endpoint). `modifiedOnOrAfter`-gated syncs will silently miss item-level changes. | Always send the complete `items[]` array on PATCH. After editing template items, force a full downstream backfill on any sync that gates on `modifiedOn`. See `02-pricebook-reference.md` §7.15. |
 
 ---
 
@@ -182,6 +183,12 @@ These are the runtime errors and "weird behaviors" that come up most often when 
 - **Symptom:** Customer A merged into Customer B; Customer B's profile shows the consolidated history, but external warehouse data still has equipment / invoices linked to Customer A's ID.
 - **Cause:** The external warehouse pulled before the merge; the local snapshot has stale foreign keys. ST's internal re-parenting cascades on the live database but doesn't push to external warehouses.
 - **Workaround:** When following the `mergedToId` pointer in external data, follow the chain to the surviving ID. Schedule a re-sync of customer / location / job tables after any bulk merge operation. See `07-crm-data-model-and-deduplication.md` §6.
+
+### 2.19 Credential-fill browser automation breaks on Adaptive Login (ST-77.3)
+
+- **Symptom:** Browser automation script that pre-fills username and password fails to complete login. The login page now shows an intermediate identity or auth-method selection step the script doesn't handle.
+- **Cause:** ST-77.3 introduced **Adaptive Login** — a two-step flow where the tenant identifies itself first, then the auth method is selected. Single-pass credential-fill scripts get stuck at the intermediate step.
+- **Workaround:** Migrate to **session-reuse** — persist the browser session state (cookies, local storage) between runs. Re-authenticate only when the session expires. Do not re-login fresh on every run. See `glossary.md` — **Adaptive Login**.
 
 ---
 
