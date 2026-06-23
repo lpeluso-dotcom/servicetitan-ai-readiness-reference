@@ -22,7 +22,8 @@ Each file is self-contained: every acronym is expanded on first use within its s
 | 07 | [07-crm-data-model-and-deduplication.md](./07-crm-data-model-and-deduplication.md) | Customer/Location/Contact entity schemas, the polymorphic Contact Hub, `mergedToId` tombstones, deduplication algorithms |
 | 08 | [08-csr-scoring-and-ai-tools.md](./08-csr-scoring-and-ai-tools.md) | The 10-step CSR rubric, AI scoring platforms, Titan Intelligence, Dispatch Pro, AdCap data dependencies |
 | 09 | [09-anti-patterns-and-failure-modes.md](./09-anti-patterns-and-failure-modes.md) | The "don't do" catalogue, common failure modes, workarounds, audit playbooks |
-| 10 | [10-api-release-notes-st75-st76.md](./10-api-release-notes-st75-st76.md) | API change log and integration impact analysis, ST-75.1 through ST-76.3 |
+| 10 | [10-api-release-notes-st75-st76.md](./10-api-release-notes-st75-st76.md) | API change log and integration impact analysis, ST-75.1 through ST-76.3 (see `11-api-release-notes-st77.md` for ST-77+) |
+| 11 | [11-api-release-notes-st77.md](./11-api-release-notes-st77.md) | API change log and integration impact analysis, ST-77 through ST-77.3 |
 | — | [glossary.md](./glossary.md) | Unified glossary of ServiceTitan terms used across all documents |
 
 ---
